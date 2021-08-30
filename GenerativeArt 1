@@ -1,0 +1,47 @@
+library(dplyr)
+library(jasmines)
+library(ambient)
+library(magrittr)
+library(jpeg)
+library(png)
+library(magick)
+
+#To create the garlands
+p0 <- use_seed(1) %>%
+  scene_discs(
+    rings = 4, points = 8000, size = 30
+  ) %>%
+  mutate(ind = 1:n()) %>%
+  unfold_warp(
+    iterations = 1,
+    scale = .5, 
+    output = "layer" 
+  ) %>%
+  unfold_tempest(
+    iterations = 20,
+    scale = .01
+  ) %>%
+  style_ribbon(
+    palette = palette_manual("red", "White"),
+    colour = "red",
+    alpha = c(0.3),
+    background = "black"
+  )
+
+#To save the garlands
+ggsave("p0.png", p0, width = 10, height = 10, units = "cm")
+
+#To superimpose Lord Krishna's picture over the garlands
+Garlands <- image_read('p0.png')
+Krishna <- image_read("Krishna.jpg")
+image_scale(Krishna, "40")->LordKrishna
+img <- c(Garlands, Krishna)
+image_composite(image_scale(Garlands, "x400"), Krishna, offset = "+180+170")->ic
+image_scale(ic, "400x400")->ic
+image_enhance(ic)->ic
+ic%>%image_annotate("@annapurani93", size = 12, color = "white", location = "+300+380")->ic
+
+#To save the final image
+image_write(ic, path = "final.png", format = "png")
+
+
